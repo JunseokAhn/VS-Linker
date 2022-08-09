@@ -16,7 +16,7 @@ export class Parser {
         private workspacePath: string) { }
 
     findIncludes(): IncludeBasic[] {
-        const regex = /<!--(\s+)?#include(\s+)?(?<type>virtual|file)(\s+)?=(\s+)?\"(?<filename>.*?)\"(\s+)?-->/gis;
+        const regex = /<!--(\s+)?#include(\s+)?(?<type>virtual|file)(\s+)?=(\s+)?\"(?<filename>.*?)\"(.*)-->/g;
         let m, text = '', includePath, includes: IncludeBasic[] = [];
         while ((m = regex.exec(this.content)) !== null && m.groups) {
             text = m[0];

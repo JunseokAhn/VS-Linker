@@ -11,10 +11,13 @@ This is a Visual Studio Code extension for linking to files
 
 ## Release Notes
 
+### 1.0.1
+Fix regex in order to better find the link
+Fix typo
+
+
 ### 1.0.0
-
 Initial release of VS-Linker
-
 
 ---
 
@@ -37,13 +40,13 @@ File -> Add Folder to Workspace -> Add -> Restart VS Code
 
 ### 2. Add the root folder using keyword.
 
-F1 -> `asp-linker: SaveProjectRoot` -> Select -> Restart VS Code
-![saveWorkspaceRoot1](https://user-images.githubusercontent.com/57289429/182085386-a09c40c4-2ef4-43cb-a732-c4e3d3e6782d.gif)  
+F1 -> `vs-linker: SaveProjectRoot` -> Select -> Restart VS Code
+![saveWorkspaceRoot](https://user-images.githubusercontent.com/57289429/183587098-f738d80e-e715-4877-b201-bbdd3ddb6481.gif)
 
 
 ## Delete the root folder
-F1 -> `asp-linker: DeleteProjectRoot` -> Select -> Restart VS Code
+F1 -> `vs-linker: DeleteProjectRoot` -> Select -> Restart VS Code
 
-![deleteProjectRoot1](https://user-images.githubusercontent.com/57289429/182085618-6ec97eaa-b9bf-4bcf-abfc-1b80693e9417.gif)
+![deleteWorkspaceRoot](https://user-images.githubusercontent.com/57289429/183587217-efcb31c1-3094-4cf3-ab15-922ec39b0066.gif)
 
 **Enjoy!**

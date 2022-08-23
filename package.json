@@ -1,8 +1,9 @@
 {
   "name": "vs-linker",
   "displayName": "VS-Linker",
+  "publisher": "JunseokAhn",
   "description": "Just Click with CTL to open the file.",
-  "version": "0.0.1",
+  "version": "1.1.2",
   "engines": {
     "vscode": "^1.69.0"
   },
@@ -14,17 +15,23 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "VS-Linker.deleteProjectRoot",
-        "title": "VS-Linker: DeleteProjectRoot"
-      },
-      {
-        "command": "VS-Linker.saveProjectRoot",
-        "title": "VS-Linker: SaveProjectRoot"
+    "configuration": {
+      "title": "vs-linker configuration",
+      "properties": {
+        "vs-linker.projects": {
+          "type": "array",
+          "default": [
+            {
+              "rootPath" : "",
+              "regularExpression" : "/<!--(.*?)include(.+?)=(\\s+)?\\\"(?<filename>.*?)\\\"(.*)-->/g"
+            }
+          ],
+          "description": "Write your project root path & regExp. Follow README.md"
+        }
       }
-    ]
+    }
   },
+  
   "scripts": {
     "vscode:prepublish": "npm run package",
     "compile": "webpack",
@@ -54,6 +61,7 @@
     "webpack-cli": "^4.10.0"
   },
   "dependencies": {
-    "fs-extra": "^10.1.0"
+    "fs-extra": "^10.1.0",
+    "generate-changelog": "^1.8.0"
   }
 }

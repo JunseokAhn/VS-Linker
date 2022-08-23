@@ -3,7 +3,7 @@ import * as path from 'path';
 import fs = require('fs-extra');
 import { storagePath, filePath} from '../extension';
 import { showLog } from '../util/Log';
-import { SearchResult } from '../util/Interfaces';
+import { Project, SearchResult } from '../util/Interfaces';
 
 export class ProjectManager {
 
@@ -60,7 +60,7 @@ export class ProjectManager {
 					let newProject = getSavedProjectByJson();
 					newProject.push({root: selected});
 					fs.writeJSONSync(filePath, JSON.stringify(newProject));
-					
+				
 				}
 			}
 		});
@@ -127,4 +127,34 @@ export function getSavedProjectByRoot(){
 		}
 	}
 	return savedProjectRoot;
+}
+
+/**
+ * @returns Project path and regex stored in setting.json
+ */
+export function getProject() : Project | undefined { 
+	const fsPath = vscode.window.activeTextEditor?.document.uri.fsPath;
+	if(vscode.workspace.getConfiguration("vs-linker").has("projects")){
+		const projects = <any[]>vscode.workspace.getConfiguration("vs-linker").get("projects");
+		for(let idx in projects){
+			const project = projects[idx];
+			if(fsPath?.toLowerCase()?.indexOf(project.rootPath.toLowerCase()) !== -1){
+				return project;
+			}
+		}
+		showLog("saved project not found");
+		return undefined;
+	}
+}
+
+/**
+ * @param {Project} project 
+ * @returns regex for project stored in setting.json
+ */
+export function getRegex(project : Project){
+
+	let strRegex = project.regularExpress;
+	let parts = /\/(.*)\/(.*)/.exec(strRegex);
+	return new RegExp(parts![1], parts![2]);
+
 }

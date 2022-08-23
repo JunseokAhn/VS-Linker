@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import { File, Include, IncludeBasic, MethodBasic, Method } from "./Interfaces";
+import { File, Include, IncludeBasic} from "./Interfaces";
 import { Parser } from "../service/Parser";
 import { RangeHelper } from './RangeHelper';
 import { showLog } from './Log';
@@ -59,20 +59,8 @@ export class LinkerContext {
             return <Include> { 
                 includePath: basic.includePath,
                 filename: basic.filename,
-                linkType: basic.linkType,
                 rangeInput: basic.rangeInput,
                 range: RangeHelper.create(document, basic.rangeInput)
-            };
-        }
-
-        function buildMethod(basic: MethodBasic, document: vscode.TextDocument) : Method {
-            return <Method> { 
-                name: basic.name,
-                methodType: basic.methodType,
-                params: basic.params,
-                rangeInput: basic.rangeInput,
-                range: RangeHelper.create(document, basic.rangeInput),
-                filePath: filePath
             };
         }
 
@@ -82,8 +70,7 @@ export class LinkerContext {
         let parser = new Parser(filePath, document.getText(), workspacePath!);
         const file: File = {
             filePath: filePath,
-            includes: parser.findIncludes().map(i => buildInclude(i, document)),
-            methods: parser.findMethods().map(i => buildMethod(i, document))
+            includes: parser.findIncludes()!.map(i => buildInclude(i, document))
         };
         this.registerFile(file);
         return file;

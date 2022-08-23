@@ -1,10 +1,9 @@
 import * as path from "path";
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
-import { getSavedProjectByRoot } from './ProjectManager';
+import { getProject, getRegex, getSavedProjectByRoot } from './ProjectManager';
 import { filePath } from "../extension";
-import { ParserHelper } from '../util/ParserHelper';
-import { IncludeBasic, MethodBasic, MethodType } from "../util/Interfaces";
+import { IncludeBasic } from "../util/Interfaces";
 import { showLog } from "../util/Log";
 
 
@@ -15,17 +14,24 @@ export class Parser {
         private content: string,
         private workspacePath: string) { }
 
-    findIncludes(): IncludeBasic[] {
-        const regex = /<!--(\s+)?#include(\s+)?(?<type>virtual|file)(\s+)?=(\s+)?\"(?<filename>.*?)\"(.*)-->/g;
+    /**
+     * @listens onDidChangeTextDocument
+     * @returns Link info (filename, includePath, targetTextRange)
+     */
+    findIncludes(): IncludeBasic[] | null {
+        const project = getProject();
+        if (project === undefined){
+            return null;
+        }
+        let regex = getRegex(project);
         let m, text = '', includePath, includes: IncludeBasic[] = [];
         while ((m = regex.exec(this.content)) !== null && m.groups) {
             text = m[0];
-            includePath = this.determineIncludePath(m.groups.type, m.groups.filename);
+            includePath = this.determineIncludePath(m.groups.filename);
             showLog("findIncludes.text : " + m[0]);
             showLog("findIncludes.incloudePath : " + includePath);
             if (!includePath) { continue; }
             includes.push({
-                linkType: m.groups.type,
                 filename: m.groups.filename,
                 includePath: includePath,
                 rangeInput: {
@@ -37,28 +43,12 @@ export class Parser {
         return includes;
     }
 
-    findMethods(): MethodBasic[] {
-        let code = ParserHelper.stripCommentsAndWhitelines(ParserHelper.findCode(this.content));
-        const regex = /(?<type>function|sub)\s+(?<name>[a-z_]\w+)\s*(\((?<params>.*?)\))?.*?end\s+(function|sub)/gis;
-
-        let m, text = '', methods: MethodBasic[] = [];
-        while ((m = regex.exec(code)) !== null && m.groups) {
-            text = ParserHelper.firstLine(m[0]);
-            methods.push({
-                methodType: m.groups.type.toLowerCase() === 'function' ? MethodType.function : MethodType.sub,
-                name: m.groups.name,
-                params: ParserHelper.determineParams(m.groups.params),
-                rangeInput: {
-                    offset: this.content.indexOf(text),
-                    text: text,
-                }
-            });
-        }
-        return methods;
-    }
-
-
-    determineIncludePath(type: string, filename: string): string | undefined {
+    /**
+     * @listen  Parser.findIncludes
+     * @desc    Separate and return relative and absolute path
+     * @returns includePath
+     */
+    determineIncludePath(filename: string): string | undefined {
 
         const fspath = vscode.window.activeTextEditor?.document.uri.fsPath;
         showLog("determineIncludePath  : " +this.filePath);
@@ -69,11 +59,12 @@ export class Parser {
         showLog("determineIncludePath workspaceFolders[0].path : " + vscode.workspace.workspaceFolders![0].uri.path);
         showLog("determineIncludePath document.path : " + vscode.window.activeTextEditor?.document.uri.path);
         showLog("determineIncludePath fspath : " + fspath);
-        const regex = /^(.+?)(\b\:)|^(.+?)(?=\b\\)/g;
-       
+
+        
         //rootDir = volume driver or network location
         //ex) "c:", "\\192.168.1.92"...
-        let rootDir = this.filePath.match(regex)?.toString();
+        const findRootRegex = /^(.+?)(\b\:)|^(.+?)(?=\b\\)/g;
+        let rootDir = this.filePath.match(findRootRegex)?.toString();
 
         if(rootDir === undefined){
             vscode.window.showInformationMessage('Asp Linker : I cant find a root directory!');
@@ -109,17 +100,11 @@ export class Parser {
             let projects = JSON.parse(fs.readJSONSync(filePath));
             showLog("determineIncluePath read project "+projects.toString());
             
-            const savedProjects = getSavedProjectByRoot();
-    
-            // If there is a matching project in the saved project root, link based on that root
-            for(let i=0; i< savedProjects.length; i++){
-                
-                showLog(this.filePath.indexOf(savedProjects[i]));
-                if(this.filePath.indexOf(savedProjects[i]) !== -1){
-                    rootDir = savedProjects[i];
-                    showLog("saved project root found");
-                }
+            const project = getProject();
+            if(project === undefined){
+                return ;
             }
+            rootDir = project.rootPath;
 
             showLog("determineIncludePath ROOT DIR : " + rootDir);
             showLog("determineIncludePath return : " + path.join(rootDir!, filename));

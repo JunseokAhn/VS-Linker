@@ -6,7 +6,7 @@ export enum SearchResult {
 
 export interface Project {
 	rootPath : string;
-	regularExpress : string;
+	regularExpress : string[];
 }
 
 export interface File {

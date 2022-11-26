@@ -2,8 +2,9 @@
   "name": "vs-linker",
   "displayName": "VS-Linker",
   "publisher": "JunseokAhn",
+  "repository": "https://github.com/JunseokAhn/VS-Linker",
   "description": "Just Click with CTL to open the file.",
-  "version": "1.1.2",
+  "version": "1.1.5",
   "engines": {
     "vscode": "^1.69.0"
   },
@@ -31,7 +32,7 @@
       }
     }
   },
-  
+
   "scripts": {
     "vscode:prepublish": "npm run package",
     "compile": "webpack",

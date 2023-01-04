@@ -1,8 +1,7 @@
-import { isDebug } from "../extension";
+import { isDebug } from '../extension';
 
-export function showLog(message: any){
-    if(isDebug){
-        console.log(message);
-    }
+export function showLog(message: any) {
+  if (isDebug) {
+    console.log(message);
+  }
 }
- 

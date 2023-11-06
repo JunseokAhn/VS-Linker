@@ -5,6 +5,12 @@
   "rules": {
     "prettier/prettier": "error",
     "arrow-body-style": "off",
-    "prefer-arrow-callback": "off"
+    "prefer-arrow-callback": "off",
+    "parser": "@typescript-eslint/parser"
+  },
+  // Babel config file detected disable
+  "parserOptions": {
+    "parser": "@babel/eslint-parser",
+    "requireConfigFile": false
   }
 }

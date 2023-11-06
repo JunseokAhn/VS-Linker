@@ -121,7 +121,7 @@ export function getSavedProjectByRoot() {
   return savedProjectRoot;
 }
 
-/**
+/** 프로젝트를 파일패스에 매칭시켜서 찾았을 경우, 프로젝트리스트에 등록하고 추후 링크 매칭에서 사용
  * @returns Project path and regex stored in setting.json
  */
 export function getProject(): Project[] | undefined {

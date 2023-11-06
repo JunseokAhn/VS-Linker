@@ -74,6 +74,10 @@ If you use a different regular expression for each root, you can link different 
 
 ## Release Notes
 
+### 1.1.7
+
+Logo added
+
 ### 1.1.6
 
 Added an output channel to know the files matched with the registered regular expression.

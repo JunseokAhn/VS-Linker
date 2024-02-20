@@ -63,8 +63,11 @@ This regular expression in the example is asp only.
   ]
 }
 ```
+### 3. **Open the folder in the rootpath you specified.**
 
-### 3. **Check matched files and customize regular expressions.**
+![openfolder](https://github.com/JunseokAhn/VS-Linker/assets/57289429/416469fa-9c93-49a7-b8e4-c4182cd1799d)
+
+### 4. **Check matched files and customize regular expressions.**
 
 ![image](https://user-images.githubusercontent.com/57289429/210317315-3810c90c-a4ca-4f4f-9938-f0e7f291e5fe.png)
 

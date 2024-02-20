@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { DocumentLinkProvider } from './service/DocumentLinkProvider';
-import { LinkerContext } from './util/LinkerContext';
+import { DocumentLinkProvider } from './common/DocumentLinkProvider';
+import { FileLinkService } from './service/FileLinkService';
 import { showLog } from './util/Log';
 
 export let storagePath: string;
@@ -9,37 +9,44 @@ export let isDebug: boolean;
 export let output: vscode.OutputChannel;
 
 export function activate(context: vscode.ExtensionContext) {
-  storagePath = context.globalStorageUri.fsPath;
-  filePath = storagePath + '\\projects.json';
-  isDebug = true;
 
-  //Create output channel
-  output = vscode.window.createOutputChannel('VS-Linker');
+  let service : FileLinkService;
+  init();
 
-  showLog('extension globalStorageUri : ' + context.globalStorageUri.fsPath);
-  showLog('extension extensionUri' + context.extensionUri);
-
-  // logger.info(`Congratulations, your extension "VS-Linker" is now active!`);
-  function register(doc: vscode.TextDocument) {
-    LinkerContext.getOrCreateFile(doc);
+  function init(){
+    output = vscode.window.createOutputChannel('VS-Linker');
+    service = new FileLinkService();
+    setGlobalValue();
+    addEventHandler();
+    showLog('extension globalStorageUri : ' + context.globalStorageUri.fsPath);
+    showLog('extension extensionUri' + context.extensionUri);
   }
 
-  vscode.workspace.onDidChangeTextDocument((evt) => register(evt.document));
-  vscode.workspace.onDidDeleteFiles((evt) =>
-    LinkerContext.unregisterFile(evt.files.map((u) => u.path))
-  );
+  function setGlobalValue(){
+    storagePath = context.globalStorageUri.fsPath;
+    filePath = storagePath + '\\projects.json';
+    isDebug = true;
+  }
 
-  context.subscriptions.push(
-    vscode.languages.registerDocumentLinkProvider({ scheme: 'file' }, new DocumentLinkProvider())
-  );
+  function addEventHandler(){
+
+      vscode.workspace.onDidChangeTextDocument((evt) => service.getOrCreateFile(evt.document));
+
+      vscode.workspace.onDidDeleteFiles((evt) =>
+      service.unregisterFile(evt.files.map((u) => u.path)));
+
+      context.subscriptions.push(
+        vscode.languages.registerDocumentLinkProvider({ scheme: 'file' }, new DocumentLinkProvider(service)));
+  }
+
 
   /**
    * @TODO project registration and deletion from command
    */
-  // const saveProjectRootCommand = vscode.commands.registerCommand(ProjectManager.saveProjectRootCommandId, ProjectManager.saveProjectRoot);
-  // const deleteProjectRootCommand = vscode.commands.registerCommand(ProjectManager.deleteProjectRootCommandId, ProjectManager.deleteProjectRoot);
+  // const saveProjectRootCommand = vscode.commands.registerCommand(CommandProvider.saveProjectRootCommandId, CommandProvider.saveProjectRoot);
+  // const deleteProjectRootCommand = vscode.commands.registerCommand(CommandProvider.deleteProjectRootCommandId, CommandProvider.deleteProjectRoot);
 
   // context.subscriptions.push(saveProjectRootCommand, deleteProjectRootCommand);
 }
 
-export function deactivate() {}
+// export function deactivate() {}

@@ -1,16 +1,22 @@
 import * as vscode from 'vscode';
 
-import { File, Include, IncludeBasic } from './Interfaces';
-import { Parser } from '../service/Parser';
-import { RangeHelper } from './RangeHelper';
-import { showLog } from './Log';
+import { File, Include, IncludeBasic } from '../common/Interfaces';
+import { showLog } from '../util/Log';
+import { getLinkRange, findIncludes } from '../util/FileUtils';
 import { output } from '../extension';
 
-export class LinkerContext {
-  private static _files: File[] = [];
-  private static _fileLookup: { [filePath: string]: File } = Object.create(null);
+export class FileLinkService {
 
-  public static registerFile(file: File) {
+  private _files: File[]
+  private _fileLookup: { [filePath: string]: File }
+  // private fileUtils : FileUtils
+  constructor(){
+    this._files = [];
+    this._fileLookup = Object.create(null);
+    // this.fileUtils = new FileUtils();
+  }
+
+  private registerFile(file: File) {
     if (this._fileLookup[file.filePath]) {
       this._files.splice(this._files.indexOf(this._fileLookup[file.filePath]), 1, file);
     } else {
@@ -23,7 +29,7 @@ export class LinkerContext {
     }
   }
 
-  static loadIncludeIfNeeded(includePath: string): void {
+  private loadIncludeIfNeeded(includePath: string): void {
     if (this._fileLookup[includePath]) {
       return;
     }
@@ -33,7 +39,7 @@ export class LinkerContext {
       .then((document) => this.getOrCreateFile(document));
   }
 
-  public static unregisterFile(filePaths: string[]) {
+  public unregisterFile(filePaths: string[]) {
     filePaths.forEach((filePath) => {
       if (this._fileLookup[filePath]) {
         const ix = this._files.indexOf(this._fileLookup[filePath]);
@@ -43,35 +49,36 @@ export class LinkerContext {
     });
   }
 
-  static get(filePath: string): File | undefined {
-    if (this._fileLookup[filePath]) {
-      return this._fileLookup[filePath];
-    }
-  }
+  // get(filePath: string): File | undefined {
+  //   if (this._fileLookup[filePath]) {
+  //     return this._fileLookup[filePath];
+  //   }
+  // }
 
-  public static getOrCreateFile(document: vscode.TextDocument): File {
+  public getOrCreateFile(document: vscode.TextDocument): File {
     const filePath = document.uri.fsPath;
     showLog('getOrCreateFile.filePath : ' + filePath);
     if (this._fileLookup[filePath]) {
       return this._fileLookup[filePath];
     }
 
-    function buildInclude(basic: IncludeBasic, document: vscode.TextDocument): Include {
+    const buildInclude = (basic: IncludeBasic, document: vscode.TextDocument): Include => {
       return <Include>{
         includePath: basic.includePath,
         filename: basic.filename,
         rangeInput: basic.rangeInput,
-        range: RangeHelper.create(document, basic.rangeInput)
+        range: getLinkRange(document, basic.rangeInput)
       };
     }
 
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
     const workspacePath = workspaceFolder?.uri.fsPath;
 
-    let parser = new Parser(filePath, document.getText(), workspacePath!);
+
     const file: File = {
       filePath: filePath,
-      includes: parser.findIncludes()!.map((i) => buildInclude(i, document))
+      includes: findIncludes(filePath, document.getText(), workspacePath!)!
+                  .map((i) => buildInclude(i, document))
     };
     output.appendLine(`[LINK] ${file.filePath}`);
     this.registerFile(file);

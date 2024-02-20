@@ -4,7 +4,7 @@
   "publisher": "JunseokAhn",
   "repository": "https://github.com/JunseokAhn/VS-Linker",
   "description": "Just Click with CTL to open the file.",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "icon": "src/resources/icon.png",
   "engines": {
     "vscode": "^1.69.0"

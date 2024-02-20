@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
-import { LinkerContext } from '../util/LinkerContext';
+import { FileLinkService } from '../service/FileLinkService';
 
-//Provides the `CTRL+Click` links for Include files
 export class DocumentLinkProvider implements vscode.DocumentLinkProvider {
-  provideDocumentLinks(
-    document: vscode.TextDocument,
-    token: vscode.CancellationToken
-  ): vscode.ProviderResult<vscode.DocumentLink[]> {
+
+  constructor(private fileLinker:FileLinkService){}
+
+  provideDocumentLinks( document: vscode.TextDocument, token: vscode.CancellationToken)
+    : vscode.ProviderResult<vscode.DocumentLink[]> {
     return new Promise((resolve, reject) => {
-      const file = LinkerContext.getOrCreateFile(document);
+      const file = this.fileLinker.getOrCreateFile(document);
       let includes = file.includes;
       if (includes.length === 0) {
         return reject();

@@ -1,40 +1,40 @@
-import * as path from 'path';
 import * as vscode from 'vscode';
-import { getProject, getRegex } from './ProjectManager';
-import { IncludeBasic, Project } from '../util/Interfaces';
+import * as path from 'path';
+import { RangeInput } from '../common/Interfaces';
+import { IncludeBasic, Project } from '../common/Interfaces';
+import { getProjects, getRegex } from './ProjectUtils';
 import { showLog } from '../util/Log';
 import { output } from '../extension';
 
-export class Parser {
-  constructor(private filePath: string, private content: string, private workspacePath: string) {}
+  export function getLinkRange(document: vscode.TextDocument, input: RangeInput): vscode.Range {
+    let start = document.positionAt(input.offset);
+    return new vscode.Range(
+      start,
+      new vscode.Position(start.line, start.character + input.text.length)
+    );
+  }
 
-  /**
-   * @listens onDidChangeTextDocument
-   * @returns Link info (filename, includePath, targetTextRange)
-   */
-  findIncludes(): IncludeBasic[] | null {
+
+  export function findIncludes(filePath: string, content: string, workspacePath: string): IncludeBasic[] | null {
     let m,
       text = '',
       includePath,
       includes: IncludeBasic[] = [];
 
     //Read projectRootPath, regularExpressList
-    const projectList = getProject();
-    if (projectList === undefined) {
+    const projects = getProjects();
+    if (projects === undefined) {
       return null;
     }
+    projects.forEach((project)=>{
 
-    for (let projectIdx = 0; projectIdx < projectList.length; projectIdx++) {
-      let project: Project = projectList[projectIdx];
-      let regexList: string[] = project.regularExpress;
-
+      const regexs: string[] = project.regularExpress;
       //Read regularExpress and find includePath
-      for (let regexIdx = 0; regexIdx < regexList.length; regexIdx++) {
-        let regex = getRegex(regexList[regexIdx]);
-
-        while ((m = regex.exec(this.content)) !== null && m.groups) {
+      regexs.forEach((r)=>{
+        const regex= getRegex(r);
+        while ((m = regex.exec(content)) !== null && m.groups) {
           text = m[0];
-          includePath = this.determineIncludePath(m.groups.filename, project);
+          includePath = determineIncludePath(m.groups.filename, project, filePath, workspacePath);
           showLog('findIncludes.text : ' + m[0]);
           showLog('findIncludes.incloudePath : ' + includePath);
           if (!includePath) {
@@ -44,17 +44,18 @@ export class Parser {
             filename: m.groups.filename,
             includePath: includePath,
             rangeInput: {
-              offset: this.content.indexOf(text),
+              offset: content.indexOf(text),
               text: text
             }
           });
 
           output.appendLine(
-            `[PROJECT ${projectIdx}] TARGET TEXT : ${text}\n :: [REGEX] ${regex}\n :: [FOUND FILENAME] : ${m.groups.filename}`
+            `[PROJECT ${project.rootPath}] TARGET TEXT : ${text}\n :: [REGEX] ${regex}\n :: [FOUND FILENAME] : ${m.groups.filename}`
           );
         }
-      }
-    }
+      })
+
+    })
 
     return includes;
   }
@@ -64,13 +65,13 @@ export class Parser {
    * @desc    Separate and return relative and absolute path
    * @returns includePath
    */
-  determineIncludePath(filename: string, project: Project): string | undefined {
+  export function determineIncludePath(filename: string, project: Project, filePath: string, workspacePath: string): string | undefined {
     const fspath = vscode.window.activeTextEditor?.document.uri.fsPath;
-    showLog('determineIncludePath  : ' + this.filePath);
+    showLog('determineIncludePath  : ' + filePath);
     showLog('determineIncludePath parent filename : ' + filename);
     showLog('determineIncludePath parent rootPath : ' + project.rootPath);
     showLog('determineIncludePath parent regularExpress : ' + project.regularExpress);
-    showLog('determineIncludePath workspacePath : ' + this.workspacePath);
+    showLog('determineIncludePath workspacePath : ' + workspacePath);
     showLog('determineIncludePath workspaceFolders : ' + vscode.workspace.workspaceFolders);
     showLog(
       'determineIncludePath workspaceFolders[0].fsPath : ' +
@@ -89,7 +90,7 @@ export class Parser {
     //ex) "c:", "\\192.168.1.92"...
 
     const findRootRegex = /^(.+?)(\b\:)|^(.+?)(?=\b\\)/g;
-    let rootDir = this.filePath.match(findRootRegex)?.toString();
+    let rootDir = filePath.match(findRootRegex)?.toString();
 
     if (rootDir === undefined) {
       vscode.window.showInformationMessage('Asp Linker : I cant find a root directory!');
@@ -99,7 +100,7 @@ export class Parser {
     showLog('determineIncludePath rootDir : ' + rootDir);
 
     //RelativePath matching
-    if (!filename.startsWith('/')) {
+    if (filename.startsWith('/')==false) {
       const relativePathRegex = /(.*)(?=\\)/g;
 
       rootDir = fspath!.match(relativePathRegex)?.toString();
@@ -113,7 +114,7 @@ export class Parser {
     }
 
     //AbsolutePath matching
-    if (filename.startsWith('/')) {
+    if (filename.startsWith('/')==true) {
       rootDir = project.rootPath;
 
       showLog('determineIncludePath ROOT DIR : ' + rootDir);
@@ -121,4 +122,5 @@ export class Parser {
       return path.join(rootDir!, filename);
     }
   }
-}
+
+

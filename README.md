@@ -1,79 +1,100 @@
 # VS-Linker
 
-This is a Visual Studio Code extension that links files from every language and every address.
+A Visual Studio Code extension that provides file linking with Ctrl+Click for any language using custom regular expressions.
 
-## Feature
+## Features
 
-1. links to all languages using custom regular expressions.
-2. links to network address
+- Custom regex-based file linking for all languages
+- Network path support (UNC paths)
+- Built-in presets for popular languages (ASP, JS, TS, Vue, Python, PHP, CSS, HTML, C#, Go)
+- Configuration validation tools
 
 ---
 
-## Go to include files
+## Quick Start
 
-You can open the file using Ctl + click.
+**Option 1: Use Presets (Easiest)**
+
+1. Command Palette (`Ctrl+Shift+P`) → `VS-Linker: Add Regex Preset`
+2. Select your language/framework
+3. Enter project root path
+4. Done! Use Ctrl+Click to navigate files
+
+**Option 2: Manual Configuration**
+
+Edit your `settings.json` (see Configuration section below)
+
+---
+
+## How It Works
 
 ![openFile1](https://user-images.githubusercontent.com/57289429/182084053-4f2e0b72-e7e5-47db-80e2-c9597a43f63e.gif)
 
-## Register the root folder
+Use Ctrl+Click on any file reference to open it directly.
 
-you can set project rootPath & regularExpress.
+---
 
-### 1. **Go to extension settings.**
+## Configuration
 
-![settings1](https://user-images.githubusercontent.com/57289429/186137031-8ff82f40-b14c-4d79-b24c-3954f1478399.png)
-
-### 2. **Set rootPath & regularExpress for your projects.**
-
-VS-Linker links files based on the root path.
-This regular expression in the example is asp only.
+Add projects to your `settings.json`:
 
 ```json
 {
   "vs-linker.projects": [
     {
-      //Absolute Directory Path
-      "rootPath": "\\\\192.168.1.1\\folderA",
-      "regularExpress": ["insert your custom regularExpress"]
-    },
-    {
-      //Volume Drive
-      "rootPath": "E:\\folderB",
-      "regularExpress": ["insert your custom regularExpress"]
-    },
-    {
-      //Example for ASP
-      "rootPath": "P:",
+      "rootPath": "C:\\MyProject",
       "regularExpress": [
-        "/<!--(.*?)include(.+?)=(\\s+)?\\\"(?<filename>.*?)\\\"(.*)-->/g",
-        "/document.location.href(.\\s?)=(\\s+)?\\\"(?<filename>.*?)\\\"/g",
-        "/window.open\\(\\\"(?<filename>.*?)\\?(.*?)\\)/g",
-        "/Response.Redirect(\\s+)?\\\"(?<filename>.*?)\\\"/g",
-        "/document.location.href(.\\s?)=(\\s+)?\\\"(?<filename>.*?)\\\"/g"
+        "/import\\s+.*?from\\s+['\"](?<filename>.*?)['\"]/g"
       ]
     },
     {
-      //Example for Vue
-      "rootPath": "C:\\workspace\\project\\src",
+      "rootPath": "\\\\192.168.1.1\\SharedProject",
       "regularExpress": [
-        // "/import(.*)from\\s'(?<filename>.*?)';/g",
-        "/import(.*)from\\s'@(?<filename>.*?)';/g"
+        "/<!--include file=\"(?<filename>.*?)\"-->/g"
       ]
     }
   ]
 }
 ```
-### 3. **Open the folder in the rootpath you specified.**
 
-![openfolder](https://github.com/JunseokAhn/VS-Linker/assets/57289429/416469fa-9c93-49a7-b8e4-c4182cd1799d)
+**Key Points:**
+- `rootPath`: Project root directory
+- `regularExpress`: Array of regex patterns (must include `(?<filename>...)` named group)
+- Supports multiple projects with different regex patterns
 
-### 4. **Check matched files and customize regular expressions.**
+---
 
-![image](https://user-images.githubusercontent.com/57289429/210317315-3810c90c-a4ca-4f4f-9938-f0e7f291e5fe.png)
+## Commands
 
-If you use a different regular expression for each root, you can link different languages ​​for each project.
+- **`VS-Linker: Add Regex Preset`** - Add preset for popular languages
+- **`VS-Linker: Show All Presets`** - View available presets
+- **`VS-Linker: Validate Configuration`** - Check configuration validity
 
-**Enjoy!**
+---
+
+## Writing Custom Regex
+
+Required format: `/pattern/flags` with `(?<filename>...)` named group
+
+Example:
+```regex
+/import\\s+from\\s+['"'](?<filename>.*?)['\"]/g
+```
+
+**Path Resolution:**
+- Filename starts with `/` → absolute from `rootPath`
+- Otherwise → relative to current file
+
+---
+
+## Troubleshooting
+
+**Links not working?**
+- Run `VS-Linker: Validate Configuration`
+- Check VS-Linker output channel
+- Verify regex includes `(?<filename>...)` named group
+
+**Need help?** Check the output channel for detailed matching information.
 
 ## Release Notes
 

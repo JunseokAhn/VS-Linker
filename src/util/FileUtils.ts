@@ -23,7 +23,10 @@ import { output } from '../extension';
 
     //Read projectRootPath, regularExpressList
     const projects = getProjects();
-    if (projects === undefined) {
+    if (projects === undefined || projects.length === 0) {
+      showLog('VS-Linker: No matching project configuration found for this file.');
+      showLog(`Current file: ${filePath}`);
+      showLog('Please check your vs-linker.projects settings.');
       return null;
     }
     projects.forEach((project)=>{
@@ -31,7 +34,15 @@ import { output } from '../extension';
       const regexs: string[] = project.regularExpress;
       //Read regularExpress and find includePath
       regexs.forEach((r)=>{
-        const regex= getRegex(r);
+        let regex: RegExp;
+        try {
+          regex = getRegex(r);
+        } catch (error) {
+          // 정규식 파싱 실패 시 이미 getRegex에서 에러 메시지 표시됨
+          showLog(`Skipping invalid regex: ${r}`);
+          return; // 이 정규식은 건너뛰고 다음으로
+        }
+
         while ((m = regex.exec(content)) !== null && m.groups) {
           text = m[0];
           includePath = determineIncludePath(m.groups.filename, project, filePath, workspacePath);
@@ -93,8 +104,10 @@ import { output } from '../extension';
     let rootDir = filePath.match(findRootRegex)?.toString();
 
     if (rootDir === undefined) {
-      vscode.window.showInformationMessage('Asp Linker : I cant find a root directory!');
-      showLog('VS-Linker : I cant find a root directory!');
+      const errorMsg = `VS-Linker: Cannot determine root directory for file "${path.basename(filePath)}". Please check the file path format.`;
+      vscode.window.showWarningMessage(errorMsg);
+      showLog(errorMsg);
+      showLog(`Full path: ${filePath}`);
       return;
     }
     showLog('determineIncludePath rootDir : ' + rootDir);

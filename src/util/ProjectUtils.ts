@@ -28,10 +28,59 @@ export function getProjects(): Project[] | undefined {
 /**
  * @param {Project} project
  * @returns regex for project stored in setting.json
+ * @throws Error if regex is invalid
  */
-export function getRegex(regex: string) {
-  let parts = /\/(.*)\/(.*)/.exec(regex);
-  return new RegExp(parts![1], parts![2]);
+export function getRegex(regex: string): RegExp {
+  try {
+    // 정규식 형식 파싱: "/pattern/flags"
+    const parts = /\/(.*)\/(.*)/.exec(regex);
+
+    if (!parts || parts.length < 3) {
+      throw new Error(`Invalid regex format: "${regex}". Expected format: "/pattern/flags"`);
+    }
+
+    const pattern = parts[1];
+    const flags = parts[2];
+
+    // 정규식 생성 시도
+    let regexObj: RegExp;
+    try {
+      regexObj = new RegExp(pattern, flags);
+    } catch (e) {
+      throw new Error(`Invalid regex pattern or flags: "${regex}". ${e}`);
+    }
+
+    // filename named group 검증
+    if (!pattern.includes('(?<filename>')) {
+      throw new Error(
+        `Regex must contain a "filename" named group: "${regex}". ` +
+        `Example: /import\\s+from\\s+['"'](?<filename>.*?)['"']/g`
+      );
+    }
+
+    return regexObj;
+
+  } catch (error) {
+    if (error instanceof Error) {
+      vscode.window.showErrorMessage(`VS-Linker Regex Error: ${error.message}`);
+    }
+    throw error;
+  }
+}
+
+/**
+ * 정규식 유효성 검증 (에러를 throw하지 않고 결과만 반환)
+ */
+export function validateRegex(regex: string): { valid: boolean; error?: string } {
+  try {
+    getRegex(regex);
+    return { valid: true };
+  } catch (error) {
+    return {
+      valid: false,
+      error: error instanceof Error ? error.message : String(error)
+    };
+  }
 }
 
 export function doesProjectExist(storagePath: string, filePath: string) {

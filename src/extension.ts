@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { DocumentLinkProvider } from './common/DocumentLinkProvider';
 import { FileLinkService } from './service/FileLinkService';
 import { showLog } from './util/Log';
+import { PresetCommands } from './commands/PresetCommands';
 
 export let storagePath: string;
 export let filePath: string;
@@ -39,6 +40,12 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.languages.registerDocumentLinkProvider({ scheme: 'file' }, new DocumentLinkProvider(service)));
   }
 
+  // 새로운 커맨드 등록
+  const addPresetCommand = vscode.commands.registerCommand('vs-linker.addPreset', () => PresetCommands.selectPreset());
+  const showPresetsCommand = vscode.commands.registerCommand('vs-linker.showPresets', () => PresetCommands.showAllPresets());
+  const validateConfigCommand = vscode.commands.registerCommand('vs-linker.validateConfig', () => PresetCommands.validateConfig());
+
+  context.subscriptions.push(addPresetCommand, showPresetsCommand, validateConfigCommand);
 
   /**
    * @TODO project registration and deletion from command

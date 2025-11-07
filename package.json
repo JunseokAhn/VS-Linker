@@ -17,6 +17,23 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "vs-linker.addPreset",
+        "title": "VS-Linker: Add Regex Preset",
+        "description": "주요 언어/프레임워크의 정규식 프리셋을 선택하여 추가합니다"
+      },
+      {
+        "command": "vs-linker.showPresets",
+        "title": "VS-Linker: Show All Presets",
+        "description": "사용 가능한 모든 정규식 프리셋 목록을 표시합니다"
+      },
+      {
+        "command": "vs-linker.validateConfig",
+        "title": "VS-Linker: Validate Configuration",
+        "description": "현재 VS-Linker 설정의 유효성을 검증합니다"
+      }
+    ],
     "configuration": {
       "title": "vs-linker configuration",
       "properties": {

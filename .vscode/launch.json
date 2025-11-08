@@ -16,20 +16,22 @@
 				"${workspaceFolder}/dist/**/*.js"
 			],
 			"preLaunchTask": "${defaultBuildTask}"
-		},
-		{
-			"name": "Extension Tests",
-			"type": "extensionHost",
-			"request": "launch",
-			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
-			],
-			"outFiles": [
-				"${workspaceFolder}/out/**/*.js",
-				"${workspaceFolder}/dist/**/*.js"
-			],
-			"preLaunchTask": "tasks: watch-tests"
 		}
+		// Extension Tests disabled - use 'npm test' in terminal instead
+		// Extension Host tests have issues on macOS
+		// {
+		// 	"name": "Extension Tests",
+		// 	"type": "extensionHost",
+		// 	"request": "launch",
+		// 	"args": [
+		// 		"--extensionDevelopmentPath=${workspaceFolder}",
+		// 		"--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
+		// 	],
+		// 	"outFiles": [
+		// 		"${workspaceFolder}/out/**/*.js",
+		// 		"${workspaceFolder}/dist/**/*.js"
+		// 	],
+		// 	"preLaunchTask": "tasks: watch-tests"
+		// }
 	]
 }

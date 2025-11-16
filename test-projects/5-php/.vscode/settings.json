@@ -1,0 +1,10 @@
+{
+  "vs-linker.projects": [
+    {
+      "rootPath": "/Users/guru/github/VS-Linker/test-projects/5-php",
+      "regularExpress": [
+        "/(?:require|include)(?:_once)?\\s*\\(?\\s*['\"](?<filename>.*?)['\"]\\s*\\)?/g"
+      ]
+    }
+  ]
+}

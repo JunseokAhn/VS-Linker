@@ -1,0 +1,11 @@
+{
+  "vs-linker.projects": [
+    {
+      "rootPath": "/Users/guru/github/VS-Linker/test-projects/3-vue/src",
+      "regularExpress": [
+        "/import\\s+.*?from\\s+['\"]@\\/(?<filename>.*?)['\"]/g",
+        "/import\\s+.*?from\\s+['\"](?<filename>.*?)['\"]/g"
+      ]
+    }
+  ]
+}

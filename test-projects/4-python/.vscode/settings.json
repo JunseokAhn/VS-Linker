@@ -1,0 +1,11 @@
+{
+  "vs-linker.projects": [
+    {
+      "rootPath": "/Users/guru/github/VS-Linker/test-projects/4-python",
+      "regularExpress": [
+        "/from\\s+(?<filename>[\\w.]+)\\s+import/g",
+        "/import\\s+(?<filename>[\\w.]+)/g"
+      ]
+    }
+  ]
+}

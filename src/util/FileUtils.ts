@@ -97,42 +97,31 @@ import { output } from '../extension';
     );
     showLog('determineIncludePath fspath : ' + fspath);
 
-    //rootDir = volume driver or network location
-    //ex) "c:", "\\192.168.1.92"...
-
-    const findRootRegex = /^(.+?)(\b\:)|^(.+?)(?=\b\\)/g;
-    let rootDir = filePath.match(findRootRegex)?.toString();
-
-    if (rootDir === undefined) {
-      const errorMsg = `VS-Linker: Cannot determine root directory for file "${path.basename(filePath)}". Please check the file path format.`;
+    // Check if active editor is available for relative path resolution
+    if (!fspath) {
+      const errorMsg = `VS-Linker: Cannot determine current file path for "${filename}".`;
       vscode.window.showWarningMessage(errorMsg);
       showLog(errorMsg);
-      showLog(`Full path: ${filePath}`);
       return;
     }
-    showLog('determineIncludePath rootDir : ' + rootDir);
 
-    //RelativePath matching
-    if (filename.startsWith('/')==false) {
-      const relativePathRegex = /(.*)(?=\\)/g;
+    // Use Node.js path module for cross-platform path handling
+    // This works on Windows (C:\, \\network\), Unix (/home/), and macOS (/Users/)
 
-      rootDir = fspath!.match(relativePathRegex)?.toString();
-      if (rootDir?.endsWith(',')) {
-        rootDir = rootDir.slice(0, -1);
-      }
-
-      showLog('relativePath ' + rootDir);
-      showLog('relativePath return : ' + path.join(rootDir!, filename));
-      return path.join(rootDir!, filename);
-    }
-
-    //AbsolutePath matching
-    if (filename.startsWith('/')==true) {
-      rootDir = project.rootPath;
-
-      showLog('determineIncludePath ROOT DIR : ' + rootDir);
-      showLog('determineIncludePath return : ' + path.join(rootDir!, filename));
-      return path.join(rootDir!, filename);
+    if (path.isAbsolute(filename)) {
+      // Absolute path: join with project root
+      // Examples: "/utils/helper.js" or "C:\utils\helper.js"
+      const resolvedPath = path.join(project.rootPath, filename);
+      showLog('absolutePath resolved : ' + resolvedPath);
+      return resolvedPath;
+    } else {
+      // Relative path: resolve from current file's directory
+      // Examples: "./utils/helper.js" or "../common/config.js"
+      const currentDir = path.dirname(fspath);
+      const resolvedPath = path.join(currentDir, filename);
+      showLog('relativePath currentDir : ' + currentDir);
+      showLog('relativePath resolved : ' + resolvedPath);
+      return resolvedPath;
     }
   }
 

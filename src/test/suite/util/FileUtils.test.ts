@@ -54,8 +54,15 @@ suite('FileUtils 테스트', () => {
   suite('determineIncludePath', () => {
 
     test('상대 경로 처리 (/ 로 시작하지 않음)', () => {
+      // Use platform-specific paths for proper testing
+      const isWindows = process.platform === 'win32';
+      const rootPath = isWindows ? 'C:\\MyProject' : '/Users/test/MyProject';
+      const fsPath = isWindows
+        ? 'C:\\MyProject\\src\\components\\Component.js'
+        : '/Users/test/MyProject/src/components/Component.js';
+
       const project: Project = {
-        rootPath: 'C:\\MyProject',
+        rootPath: rootPath,
         regularExpress: ['/test/g']
       };
 
@@ -63,7 +70,7 @@ suite('FileUtils 테스트', () => {
       const mockEditor = {
         document: {
           uri: {
-            fsPath: 'C:\\MyProject\\src\\components\\Component.js'
+            fsPath: fsPath
           }
         }
       };
@@ -72,8 +79,8 @@ suite('FileUtils 테스트', () => {
       const result = determineIncludePath(
         './utils/helper.js',
         project,
-        'C:\\MyProject\\src\\components\\Component.js',
-        'C:\\MyProject'
+        fsPath,
+        rootPath
       );
 
       assert.ok(result, 'Should return a path');
@@ -82,15 +89,25 @@ suite('FileUtils 테스트', () => {
     });
 
     test('절대 경로 처리 (/ 로 시작)', () => {
+      // Use platform-specific paths for proper testing
+      const isWindows = process.platform === 'win32';
+      const rootPath = isWindows ? 'C:\\MyProject' : '/Users/test/MyProject';
+      const fsPath = isWindows
+        ? 'C:\\MyProject\\src\\components\\Component.js'
+        : '/Users/test/MyProject/src/components/Component.js';
+      const filePath = isWindows
+        ? 'C:\\MyProject\\src\\Component.js'
+        : '/Users/test/MyProject/src/Component.js';
+
       const project: Project = {
-        rootPath: 'C:\\MyProject',
+        rootPath: rootPath,
         regularExpress: ['/test/g']
       };
 
       const mockEditor = {
         document: {
           uri: {
-            fsPath: 'C:\\MyProject\\src\\components\\Component.js'
+            fsPath: fsPath
           }
         }
       };
@@ -99,8 +116,8 @@ suite('FileUtils 테스트', () => {
       const result = determineIncludePath(
         '/utils/helper.js',
         project,
-        'C:\\MyProject\\src\\Component.js',
-        'C:\\MyProject'
+        filePath,
+        rootPath
       );
 
       assert.ok(result, 'Should return a path');
@@ -108,26 +125,101 @@ suite('FileUtils 테스트', () => {
       assert.ok(result!.includes('utils'), 'Should include utils directory');
     });
 
-    test('루트 디렉토리를 찾을 수 없으면 undefined 반환', () => {
+    test('Unix/macOS 상대 경로 처리', () => {
       const project: Project = {
-        rootPath: 'C:\\MyProject',
+        rootPath: '/Users/username/MyProject',
         regularExpress: ['/test/g']
       };
 
       const mockEditor = {
         document: {
           uri: {
-            fsPath: '/invalid/path/without/volume'
+            fsPath: '/Users/username/MyProject/src/components/Component.js'
           }
         }
       };
       sinon.stub(vscode.window, 'activeTextEditor').value(mockEditor);
 
       const result = determineIncludePath(
+        './utils/helper.js',
+        project,
+        '/Users/username/MyProject/src/components/Component.js',
+        '/Users/username/MyProject'
+      );
+
+      assert.ok(result, 'Should return a path');
+      assert.ok(result!.includes('components'), 'Should include parent directory');
+      assert.ok(result!.includes('helper.js'), 'Should include filename');
+    });
+
+    test('Unix/macOS 절대 경로 처리', () => {
+      const project: Project = {
+        rootPath: '/Users/username/MyProject',
+        regularExpress: ['/test/g']
+      };
+
+      const mockEditor = {
+        document: {
+          uri: {
+            fsPath: '/Users/username/MyProject/src/Component.js'
+          }
+        }
+      };
+      sinon.stub(vscode.window, 'activeTextEditor').value(mockEditor);
+
+      const result = determineIncludePath(
+        '/utils/helper.js',
+        project,
+        '/Users/username/MyProject/src/Component.js',
+        '/Users/username/MyProject'
+      );
+
+      assert.ok(result, 'Should return a path');
+      assert.ok(result!.includes('MyProject'), 'Should use project rootPath');
+      assert.ok(result!.includes('utils'), 'Should include utils directory');
+    });
+
+    test('Linux 경로 처리', () => {
+      const project: Project = {
+        rootPath: '/home/user/project',
+        regularExpress: ['/test/g']
+      };
+
+      const mockEditor = {
+        document: {
+          uri: {
+            fsPath: '/home/user/project/src/main.go'
+          }
+        }
+      };
+      sinon.stub(vscode.window, 'activeTextEditor').value(mockEditor);
+
+      const result = determineIncludePath(
+        './utils.go',
+        project,
+        '/home/user/project/src/main.go',
+        '/home/user/project'
+      );
+
+      assert.ok(result, 'Should return a path');
+      assert.ok(result!.includes('src'), 'Should include src directory');
+      assert.ok(result!.includes('utils.go'), 'Should include filename');
+    });
+
+    test('activeTextEditor가 없으면 undefined 반환', () => {
+      const project: Project = {
+        rootPath: '/Users/username/MyProject',
+        regularExpress: ['/test/g']
+      };
+
+      // No active editor
+      sinon.stub(vscode.window, 'activeTextEditor').value(undefined);
+
+      const result = determineIncludePath(
         './helper.js',
         project,
-        '/invalid/path/without/volume',
-        ''
+        '/Users/username/MyProject/src/Component.js',
+        '/Users/username/MyProject'
       );
 
       // Should show warning message
@@ -135,7 +227,8 @@ suite('FileUtils 테스트', () => {
       assert.strictEqual(result, undefined, 'Should return undefined');
     });
 
-    test('네트워크 경로 처리', () => {
+    // Windows-only test for network paths (UNC paths)
+    (process.platform === 'win32' ? test : test.skip)('네트워크 경로 처리', () => {
       const project: Project = {
         rootPath: '\\\\192.168.1.1\\SharedFolder',
         regularExpress: ['/test/g']

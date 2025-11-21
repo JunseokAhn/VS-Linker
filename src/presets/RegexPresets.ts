@@ -4,6 +4,7 @@ export interface RegexPreset {
   description: string;
   regularExpress: string[];
   examples: string[];
+  autoExtensions?: string[];
 }
 
 export const REGEX_PRESETS: RegexPreset[] = [
@@ -30,7 +31,8 @@ export const REGEX_PRESETS: RegexPreset[] = [
     examples: [
       'import { Component } from "./components/Component"',
       'import "./styles/main.css"'
-    ]
+    ],
+    autoExtensions: ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']
   },
   {
     id: 'javascript-require',
@@ -68,7 +70,8 @@ export const REGEX_PRESETS: RegexPreset[] = [
     examples: [
       'from utils.helper import function',
       'import os.path'
-    ]
+    ],
+    autoExtensions: ['.py']
   },
   {
     id: 'php-include',
@@ -123,14 +126,16 @@ export const REGEX_PRESETS: RegexPreset[] = [
   {
     id: 'go-import',
     name: 'Go Import',
-    description: 'Go의 import 문을 감지합니다',
+    description: 'Go의 import 문과 @file 주석을 감지합니다',
     regularExpress: [
-      '/import\\s+[\'"](?<filename>.*?)[\'"]/g',
-      '/import\\s+\\w+\\s+[\'"](?<filename>.*?)[\'"]/g'
+      '/\\/\\/\\s*@file:\\s*(?<filename>.*?)(?:\\s|$)/g',
+      '/import\\s+[\'"](?<filename>\\.\\/.*?)[\'"]/g',
+      '/import\\s+\\w+\\s+[\'"](?<filename>\\.\\/.*?)[\'"]/g'
     ],
     examples: [
-      'import "fmt"',
-      'import utils "github.com/user/project/utils"'
+      '// @file: ./utils.go',
+      'import "./utils"',
+      'import utils "./helpers/utils"'
     ]
   }
 ];

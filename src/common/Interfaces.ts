@@ -10,6 +10,7 @@ export enum SearchResult {
 export interface Project {
   rootPath: string;
   regularExpress: string[];
+  autoExtensions?: string[];
 }
 
 export interface File {

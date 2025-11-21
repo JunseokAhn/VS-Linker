@@ -96,7 +96,8 @@ export class PresetCommands {
     // Add new project
     const newProject: Project = {
       rootPath: rootPath,
-      regularExpress: preset.regularExpress
+      regularExpress: preset.regularExpress,
+      autoExtensions: preset.autoExtensions
     };
 
     projects.push(newProject);

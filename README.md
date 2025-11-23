@@ -72,6 +72,19 @@ Add projects to your `settings.json`:
 
 ---
 
+## Presets
+
+### Supported Languages
+JavaScript, TypeScript, Vue, Python, PHP, CSS, HTML, ASP, C#, Go
+
+### Usage
+1. `Ctrl+Shift+P` → `VS-Linker: Add Regex Preset`
+2. Select language
+3. Enter project root path
+4. Use Ctrl+Click to navigate files
+
+---
+
 ## Writing Custom Regex
 
 Required format: `/pattern/flags` with `(?<filename>...)` named group
@@ -95,42 +108,3 @@ Example:
 - Verify regex includes `(?<filename>...)` named group
 
 **Need help?** Check the output channel for detailed matching information.
-
-## Release Notes
-
-### 1.1.7
-
-Logo added
-
-### 1.1.6
-
-Added an output channel to know the files matched with the registered regular expression.
-
-### 1.1.5
-
-Fixed a bug that prevented extensions from working. sorry!
-
-### 1.1.4
-
-You can now input regular expressions as arrays.
-
-### 1.1.2
-
-The existing commands `vs-linker: SaveProjectRoot` and `vs-linker: DeleteProjectRoot` are deprecated for the time being.
-Fix bug.
-
-### 1.1.1
-
-Fix bug.
-
-### 1.1.0
-
-Add project management in settings.json
-
-### 1.0.1
-
-Fix regex in order to better find the link
-
-### 1.0.0
-
-Initial release of VS-Linker

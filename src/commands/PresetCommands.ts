@@ -93,13 +93,23 @@ export class PresetCommands {
     const config = vscode.workspace.getConfiguration('vs-linker');
     const projects = config.get<Project[]>('projects') || [];
 
-    // Add new project
-    const newProject: Project = {
-      rootPath: rootPath,
-      regularExpress: preset.regularExpress
-    };
+    // Find existing project with same rootPath
+    const existingProject = projects.find(p => p.rootPath === rootPath);
 
-    projects.push(newProject);
+    if (existingProject) {
+      // Add new regex patterns to existing project (avoid duplicates)
+      preset.regularExpress.forEach(regex => {
+        if (!existingProject.regularExpress.includes(regex)) {
+          existingProject.regularExpress.push(regex);
+        }
+      });
+    } else {
+      // Create new project
+      projects.push({
+        rootPath: rootPath,
+        regularExpress: preset.regularExpress
+      });
+    }
 
     // Update configuration (save to global settings)
     await config.update('projects', projects, vscode.ConfigurationTarget.Global);
